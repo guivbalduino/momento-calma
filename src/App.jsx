@@ -75,8 +75,45 @@ function App() {
   const [currentStep, setCurrentStep] = useState(0);
   const step = steps[currentStep];
 
+  const playChime = (isSuccess = false) => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const playNote = (freq, delay = 0) => {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+        gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + delay + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 1.5);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start(audioCtx.currentTime + delay);
+        oscillator.stop(audioCtx.currentTime + delay + 1.5);
+      };
+
+      if (isSuccess) {
+        // C Major Arpeggio
+        playNote(523.25, 0);     // C5
+        playNote(659.25, 0.2);   // E5
+        playNote(783.99, 0.4);   // G5
+        playNote(1046.50, 0.6);  // C6
+      } else {
+        playNote(523.25, 0);     // C5
+      }
+    } catch (e) {
+      console.error("Audio block context error:", e);
+    }
+  };
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
+      const isFinishing = currentStep === steps.length - 2;
+      playChime(isFinishing);
       setCurrentStep(currentStep + 1);
     }
   };

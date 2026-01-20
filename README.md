@@ -18,6 +18,9 @@ O app utiliza uma metodologia terapêutica comprovada para mindfulness:
 
 ## ✨ Características
 
+-   **PWA (App Instalável)**: Pode ser instalado no Android e iOS como um aplicativo nativo.
+-   **Som de Meditação**: Sons suaves gerados via código (chime para etapas e arpejo para conclusão).
+-   **Ícone Personalizado**: Design amigável gerado exclusivamente para o app.
 -   **Interface Premium**: Design limpo, cores calmantes e tipografia moderna.
 -   **Animações Suaves**: Micro-interações para uma experiência relaxante.
 -   **Design Responsivo**: Funciona perfeitamente em Desktops, Tablets e Celulares.
