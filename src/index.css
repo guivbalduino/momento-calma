@@ -1,0 +1,137 @@
+:root {
+  --primary: #4CAF50;
+  --primary-dark: #2E7D32;
+  --bg-color: #E8F5E9;
+  --card-bg: #ffffff;
+  --text-main: #333333;
+  --text-muted: #666666;
+  --accent: #FBC02D;
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.app-container {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  transition: var(--transition);
+}
+
+.ursinho {
+  font-size: 100px;
+  margin-bottom: 24px;
+  display: block;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+h1 {
+  color: var(--primary-dark);
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+p {
+  color: var(--text-muted);
+  font-size: 20px;
+  margin-bottom: 32px;
+}
+
+.stars-container {
+  height: 40px;
+  margin-bottom: 24px;
+  font-size: 28px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  color: var(--accent);
+}
+
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 18px 40px;
+  border-radius: 100px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 8px 16px rgba(76, 175, 80, 0.2);
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(76, 175, 80, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+.fade-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: var(--transition);
+}
+.fade-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+.fade-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: var(--transition);
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 30px 20px;
+    border-radius: 24px;
+  }
+  
+  h1 { font-size: 26px; }
+  p { font-size: 18px; }
+  .ursinho { font-size: 80px; }
+}
