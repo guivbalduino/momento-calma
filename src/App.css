@@ -1,11 +1,19 @@
-/* App specific styles if needed, mostly handled by index.css for this app */
-.star {
-  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.app-container {
+  animation: fadeIn 0.8s ease-out;
 }
 
-@keyframes pop {
+.star {
+  display: inline-block;
+  animation: starPop 0.5s ease-out forwards;
+}
+
+@keyframes starPop {
   0% {
     transform: scale(0);
+  }
+
+  70% {
+    transform: scale(1.2);
   }
 
   100% {
@@ -13,8 +21,20 @@
   }
 }
 
-.content {
-  animation: fadeIn 0.5s ease-out;
+.improvement-btn:hover {
+  transform: scale(1.05);
+  background-color: var(--primary-dark);
+}
+
+.btn-text {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.3s ease-out;
+}
+
+.improvement-btn:hover .btn-text {
+  max-width: 200px;
 }
 
 @keyframes fadeIn {

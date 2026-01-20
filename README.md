@@ -4,50 +4,41 @@ Uma aplicação web moderna e minimalista projetada para auxiliar no gerenciamen
 
 ## 🚀 O Projeto
 
-O **Momento Calma** é um guia interativo que ajuda o usuário a sair de um estado de ansiedade ou pânico, trazendo-o de volta para o momento presente. Através de uma interface amigável e acolhedora, a aplicação estimula os cinco sentidos para "aterrar" os pensamentos do usuário.
-
-## 🧠 A Técnica 5-4-3-2-1
-
-O app utiliza uma metodologia terapêutica comprovada para mindfulness:
-
--   **👁️ 5 Coisas que você pode ver**: Foco na percepção visual do ambiente.
--   **🧤 4 Coisas que você pode tocar**: Conexão com o tato e sensações físicas.
--   **👂 3 Coisas que você pode ouvir**: Atenção aos sons ao redor.
--   **👃 2 Coisas que você pode cheirar**: Estímulo olfativo para mudar o foco cerebral.
--   **👅 1 Coisa que você pode sentir o gosto**: Percepção sensorial intensa para finalização.
+O **Momento Calma** é um guia interativo que ajuda o usuário a sair de um estado de ansiedade ou pânico, trazendo-o de volta para o momento presente.
 
 ## ✨ Características
 
--   **Interface Premium**: Design limpo, cores calmantes e tipografia moderna.
--   **Animações Suaves**: Micro-interações para uma experiência relaxante.
--   **Design Responsivo**: Funciona perfeitamente em Desktops, Tablets e Celulares.
--   **Emojis Dinâmicos**: Feedback visual específico para cada sentido trabalhado.
--   **Feedback de Progresso**: Estrelas animadas que acompanham o avanço em cada etapa.
-
-## 🛠️ Tecnologias
-
--   [React](https://reactjs.org/)
--   [Vite](https://vitejs.dev/)
--   [CSS Vanilla](https://developer.mozilla.org/en-US/docs/Web/CSS) (com variáveis modernas e Flexbox)
+-   **Técnica 5-4-3-2-1**: Guia sensorial completo para mindfulness.
+-   **Sistema de Feedback Duplo**:
+    -   **Sentimentos**: No final do app, com cooldown de 2 horas por IP.
+    -   **Sugestões**: Botão flutuante "?" para melhorias (1 envio por IP).
+-   **Painel Admin**: Visualização e exportação (CSV) de feedbacks em `/feedbacks/app` e `/feedbacks/sentimento`.
+-   **PWA**: Instalável como um aplicativo no seu dispositivo.
 
 ## 📦 Como rodar localmente
 
-1.  **Clone o repositório**:
-    ```bash
-    git clone https://github.com/seu-usuario/momento-calma.git
-    ```
-2.  **Entre na pasta**:
-    ```bash
-    cd momento-calma
-    ```
-3.  **Instale as dependências**:
+1.  **Instale as dependências**:
     ```bash
     npm install
     ```
-4.  **Inicie o servidor de desenvolvimento**:
+2.  **Configure o ambiente**:
+    -   Copie o arquivo `.env.example` para um novo arquivo chamado `.env`.
+    -   Defina sua senha em `FEEDBACK_PASSWORD`.
+    -   Adicione sua `DATABASE_URL` do Supabase (obrigatório).
+3.  **Inicie Tudo**:
     ```bash
-    npm run dev
+    npm run dev:all
     ```
+
+## 🌐 Configuração Supabase (Obrigatório)
+
+Este projeto utiliza **PostgreSQL** via Supabase exclusivamente para armazenamento de feedbacks.
+
+1.  No Supabase, vá em **Project Settings > Database** e copie a **Connection String** (URI).
+2.  (Opcional) No Supabase, vá em **SQL Editor** e cole o conteúdo do arquivo `schema.sql` para criar as tabelas.
+3.  Adicione a variável `DATABASE_URL` no seu arquivo `.env` ou no painel de controle do seu servidor (Railway/Vercel).
+
+*Nota: Se a conexão com o banco falhar, o app exibirá uma mensagem de erro técnico amigável ao usuário.*
 
 ## 📄 Licença
 
