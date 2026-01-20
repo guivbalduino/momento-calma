@@ -49,5 +49,9 @@ O app utiliza uma metodologia terapêutica comprovada para mindfulness:
     npm run dev
     ```
 
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](file:///d:/Git/momento-calma/LICENSE) para mais detalhes.
+
 ---
 *Feito com ❤️ para ajudar a encontrar paz em momentos de caos.*
