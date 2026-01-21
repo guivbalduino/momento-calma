@@ -64,11 +64,22 @@ async function checkDbInit() {
         ip TEXT NOT NULL UNIQUE,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
+      
+      -- Migrations: Adiciona novas colunas caso não existam
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='sentiment_feedbacks' AND COLUMN_NAME='user_agent') THEN
+          ALTER TABLE sentiment_feedbacks ADD COLUMN user_agent TEXT, ADD COLUMN device_type TEXT, ADD COLUMN screen_size TEXT, ADD COLUMN language TEXT, ADD COLUMN duration_seconds INTEGER;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='app_feedbacks' AND COLUMN_NAME='user_agent') THEN
+          ALTER TABLE app_feedbacks ADD COLUMN user_agent TEXT, ADD COLUMN device_type TEXT, ADD COLUMN screen_size TEXT, ADD COLUMN language TEXT, ADD COLUMN rating INTEGER;
+        END IF;
+      END $$;
+
       ALTER TABLE sentiment_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
       ALTER TABLE app_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
     `);
     dbInitialized = true;
-    console.log('Database schema initialized successfully.');
+    console.log('Database schema initialized and migrated successfully.');
   } catch (err) {
     console.error('DATABASE ERROR:', err.message);
     throw new Error(`Falha ao conectar no Supabase: ${err.message}`);
@@ -113,7 +124,7 @@ app.get('/api/check-status', async (req, res) => {
 });
 
 app.post('/api/feedback', async (req, res) => {
-  const { content, type } = req.body;
+  const { content, type, metadata } = req.body;
   const ip = getClientIp(req);
 
   if (!content || content.trim().length === 0) {
@@ -122,6 +133,8 @@ app.post('/api/feedback', async (req, res) => {
 
   try {
     await checkDbInit();
+    const { user_agent, device_type, screen_size, language, duration_seconds, rating } = metadata || {};
+
     if (type === 'sentiment') {
       const lastRes = await pool.query('SELECT EXTRACT(EPOCH FROM created_at) * 1000 as last_epoch FROM sentiment_feedbacks WHERE ip = $1 ORDER BY created_at DESC LIMIT 1', [ip]);
       const last = lastRes.rows[0];
@@ -132,9 +145,15 @@ app.post('/api/feedback', async (req, res) => {
           return res.status(403).json({ error: 'Por favor, aguarde 2 horas para enviar novamente.' });
         }
       }
-      await pool.query('INSERT INTO sentiment_feedbacks (content, ip) VALUES ($1, $2)', [content, ip]);
+      await pool.query(
+        'INSERT INTO sentiment_feedbacks (content, ip, user_agent, device_type, screen_size, language, duration_seconds) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [content, ip, user_agent, device_type, screen_size, language, duration_seconds]
+      );
     } else {
-      await pool.query('INSERT INTO app_feedbacks (content, ip) VALUES ($1, $2)', [content, ip]);
+      await pool.query(
+        'INSERT INTO app_feedbacks (content, ip, user_agent, device_type, screen_size, language, rating) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [content, ip, user_agent, device_type, screen_size, language, rating]
+      );
     }
     res.json({ success: true });
   } catch (error) {
@@ -185,13 +204,17 @@ app.get('/api/export/:type', async (req, res) => {
     const rows = result.rows;
     console.log(`[Export] Found ${rows.length} rows to export`);
 
-    const headers = ['id', 'content', 'ip', 'created_at'];
+    const tableHeaders = {
+      sentiment: ['id', 'content', 'ip', 'duration_seconds', 'device_type', 'screen_size', 'language', 'created_at', 'user_agent'],
+      app: ['id', 'content', 'rating', 'ip', 'device_type', 'screen_size', 'language', 'created_at', 'user_agent']
+    };
+
+    const headers = tableHeaders[type] || ['id', 'content', 'ip', 'created_at'];
     const csvRows = [headers.join(',')];
     for (const row of rows) {
       const values = headers.map(header => {
         const val = row[header];
-        // Escapa aspas e trata quebras de linha para o CSV não quebrar
-        const escaped = String(val || '').replace(/"/g, '""').replace(/\n/g, ' ');
+        const escaped = String(val ?? '').replace(/"/g, '""').replace(/\n/g, ' ');
         return `"${escaped}"`;
       });
       csvRows.push(values.join(','));

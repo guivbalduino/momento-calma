@@ -87,11 +87,31 @@ const Feedbacks = ({ type }) => {
                     <p>Nenhum feedback recebido ainda.</p>
                 ) : (
                     feedbacks.map((f) => (
-                        <div key={f.id} style={{ background: '#f9f9f9', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: '1px solid #eee' }}>
-                            <p style={{ fontSize: '16px', color: '#333' }}>{f.content}</p>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '12px', color: '#999' }}>
-                                <span>IP: {f.ip}</span>
-                                <span>{new Date(f.created_at).toLocaleString('pt-BR')}</span>
+                        <div key={f.id} style={{ background: '#f9f9f9', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: '1px solid #eee', position: 'relative' }}>
+                            {type === 'improvement' && f.rating && (
+                                <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--primary)', color: 'white', padding: '4px 8px', borderRadius: '6px', fontSize: '14px', fontWeight: 600 }}>
+                                    Nota: {f.rating}/10
+                                </div>
+                            )}
+                            {type === 'sentiment' && f.duration_seconds && (
+                                <div style={{ position: 'absolute', top: '16px', right: '16px', color: '#666', fontSize: '12px' }}>
+                                    ⏱️ {Math.floor(f.duration_seconds / 60)}m {f.duration_seconds % 60}s
+                                </div>
+                            )}
+
+                            <p style={{ fontSize: '16px', color: '#333', marginTop: (f.rating || f.duration_seconds) ? '12px' : '0', paddingRight: (f.rating || f.duration_seconds) ? '80px' : '0' }}>
+                                {f.content}
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f0f0f0', fontSize: '12px', color: '#999' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>📅 {new Date(f.created_at).toLocaleString('pt-BR')}</span>
+                                    <span>📍 {f.ip}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>📱 {f.device_type} ({f.screen_size})</span>
+                                    <span>🌍 {f.language}</span>
+                                </div>
                             </div>
                         </div>
                     ))

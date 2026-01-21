@@ -86,6 +86,8 @@ function MainGame() {
   const [submittedSentiment, setSubmittedSentiment] = useState(false);
   const [submittedImprovement, setSubmittedImprovement] = useState(false);
   const [countdown, setCountdown] = useState('');
+  const [startTime, setStartTime] = useState(null);
+  const [sessionRating, setSessionRating] = useState(10);
 
   const step = steps[currentStep];
 
@@ -126,11 +128,29 @@ function MainGame() {
     }
   };
 
+  const getMetadata = () => {
+    const ua = navigator.userAgent;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+    return {
+      user_agent: ua,
+      device_type: isMobile ? 'Mobile' : 'Desktop',
+      screen_size: `${window.screen.width}x${window.screen.height}`,
+      language: navigator.language,
+      duration_seconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : null
+    };
+  };
+
   const submitFeedback = async (type) => {
     const content = type === 'sentiment' ? sentiment : improvement;
     if (!content.trim()) return;
+
+    const metadata = {
+      ...getMetadata(),
+      rating: type === 'improvement' ? sessionRating : null
+    };
+
     try {
-      await axios.post(`${API_URL}/api/feedback`, { content, type });
+      await axios.post(`${API_URL}/api/feedback`, { content, type, metadata });
       if (type === 'sentiment') {
         setSubmittedSentiment(true);
         checkStatus();
@@ -140,6 +160,7 @@ function MainGame() {
           setShowImprovementModal(false);
           setSubmittedImprovement(false);
           setImprovement('');
+          setSessionRating(10);
           checkStatus();
         }, 2000);
       }
@@ -174,6 +195,9 @@ function MainGame() {
   };
 
   const handleNext = () => {
+    if (currentStep === 0 && !startTime) {
+      setStartTime(Date.now());
+    }
     if (currentStep < steps.length - 1) {
       const isFinishing = currentStep === steps.length - 2;
       playChime(isFinishing);
@@ -247,6 +271,24 @@ function MainGame() {
               <p style={{ color: '#2E7D32', fontWeight: 600 }}>Obrigado! Sua sugestão foi salva. ✨</p>
             ) : (
               <>
+                <p style={{ fontSize: '14px', marginBottom: '8px', textAlign: 'left', color: '#666' }}>Que nota você daria para o app? (1 a 10)</p>
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {[...Array(10)].map((_, i) => (
+                    <div
+                      key={i + 1}
+                      onClick={() => setSessionRating(i + 1)}
+                      style={{
+                        width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: '8px', cursor: 'pointer', border: '1px solid var(--primary)',
+                        background: sessionRating === (i + 1) ? 'var(--primary)' : 'white',
+                        color: sessionRating === (i + 1) ? 'white' : 'var(--primary-dark)',
+                        fontWeight: 600, fontSize: '14px', transition: '0.2s'
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
                 <textarea value={improvement} onChange={(e) => setImprovement(e.target.value)} placeholder="Escreva aqui sua sugestão..." style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #ddd', fontFamily: 'inherit', marginBottom: '16px', minHeight: '120px', fontSize: '16px' }} />
                 <button onClick={() => submitFeedback('improvement')} style={{ width: '100%' }}>Enviar Sugestão</button>
               </>
