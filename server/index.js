@@ -8,7 +8,7 @@ import fs from 'fs';
 
 dotenv.config();
 
-console.log('Server file loaded. VERCEL env:', process.env.VERCEL);
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,10 +35,16 @@ async function checkDbInit() {
 
   if (!pool) {
     console.log('Creating new connection pool...');
+    const url = process.env.DATABASE_URL || '';
+    const hasPort6543 = url.includes(':6543');
+    const maskedUrl = url.replace(/:[^:@]+@/, ':****@');
+    console.log(`Port 6543 (Pooler) detected: ${hasPort6543}`);
+    console.log(`Connection string format: ${maskedUrl.substring(0, 30)}...`);
+
     pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 5000
+      connectionTimeoutMillis: 10000
     });
   }
 
@@ -78,21 +84,6 @@ const getClientIp = (req) => {
 
 // --- API Routes ---
 
-app.get('/api/ping', (req, res) => {
-  console.log('Hit /api/ping route');
-  res.status(200).json({
-    status: 'ok',
-    message: 'API is alive!',
-    timestamp: new Date().toISOString(),
-    env: process.env.VERCEL ? 'vercel' : 'local'
-  });
-});
-
-app.get('/api/hello', (req, res) => {
-  console.log('Hit /api/hello route');
-  res.send('Hello from Vercel Serverless!');
-});
-
 app.get('/api/check-status', async (req, res) => {
   const ip = getClientIp(req);
   try {
@@ -119,7 +110,7 @@ app.get('/api/check-status', async (req, res) => {
     res.json({ canSubmitApp, canSubmitSentiment, nextAvailable });
   } catch (err) {
     console.error('Check Status Error:', err.message);
-    res.status(503).json({ error: `Erro no Banco (Status): ${err.message}` });
+    res.status(503).json({ error: TECH_ERROR_MSG });
   }
 });
 
@@ -153,7 +144,7 @@ app.post('/api/feedback', async (req, res) => {
       return res.status(403).json({ error: 'Você já enviou uma sugestão para o app.' });
     }
     console.error('Submit Feedback Error:', error.message);
-    res.status(503).json({ error: `Erro no Banco (Feedback): ${error.message}` });
+    res.status(503).json({ error: TECH_ERROR_MSG });
   }
 });
 
@@ -174,19 +165,7 @@ app.get('/api/feedbacks/:type', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(`[Admin] Fetch Feedbacks Error (${table}):`, err.message);
-    res.status(503).json({ error: `Erro no Banco (Admin): ${err.message}` });
-  }
-});
-
-app.get('/api/debug-db', async (req, res) => {
-  try {
-    const hasUrl = !!process.env.DATABASE_URL;
-    if (!hasUrl) throw new Error('DATABASE_URL missing');
-    await checkDbInit();
-    const result = await pool.query('SELECT NOW()');
-    res.json({ status: 'ok', time: result.rows[0].now });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(503).json({ error: TECH_ERROR_MSG });
   }
 });
 
@@ -218,7 +197,7 @@ app.get('/api/export/:type', async (req, res) => {
     res.status(200).send(csvRows.join('\n'));
   } catch (err) {
     console.error('Export Error:', err.message);
-    res.status(503).send(`Erro ao exportar: ${err.message}`);
+    res.status(503).send(TECH_ERROR_MSG);
   }
 });
 

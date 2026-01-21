@@ -25,13 +25,13 @@ O **Momento Calma** é uma aplicação web (PWA) projetada para ajudar no gerenc
 
 ### Configuração
 1. Clone o repositório.
-2. Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
-   ```env
-   FEEDBACK_PASSWORD=sua_senha_admin
-   PORT=3001
-   DATABASE_URL=sua_url_do_postgres
-   ```
-3. Instale as dependências:
+2. Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`.
+3. **Importante (Vercel + Supabase)**: O Vercel pode ter problemas para se conectar diretamente ao Supabase devido ao protocolo IPv6. Para garantir que o banco funcione em produção:
+   - No painel do Supabase, vá em **Settings > Database**.
+   - Procure por **Connection String** e mude o modo para **Transaction** (Porta 6543).
+   - Use essa URL na variável `DATABASE_URL` do Vercel, adicionando `?pgbouncer=true` ao final.
+
+4. Instale as dependências:
    ```bash
    npm install
    ```

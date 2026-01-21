@@ -61,16 +61,9 @@ const Feedbacks = ({ type }) => {
                         onChange={(e) => setPassword(e.target.value)}
                         style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%', marginBottom: '16px', fontSize: '16px' }}
                     />
-                    <button type="submit" disabled={loading}>
-                        {loading ? 'Carregando...' : 'Entrar'}
-                    </button>
+                    <button type="submit">Entrar</button>
                 </form>
-                {error && (
-                    <div style={{ marginTop: '20px', padding: '15px', background: '#ffebee', color: '#c62828', borderRadius: '8px', textAlign: 'left', border: '1px solid #ffcdd2' }}>
-                        <strong>Atenção:</strong>
-                        <p style={{ margin: '8px 0 0', fontSize: '14px' }}>{error}</p>
-                    </div>
-                )}
+                {error && <p style={{ color: 'red', marginTop: '16px' }}>{error}</p>}
             </div>
         );
     }
