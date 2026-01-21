@@ -17,17 +17,29 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// --- Database Configuration (Exclusive Supabase/PostgreSQL) ---
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+// --- Database Configuration (Lazy Init) ---
+let pool;
+let dbInitialized = false;
 
 const TECH_ERROR_MSG = "No momento estamos com problemas técnicos para armazenar feedback, desculpe.";
 
-try {
-  if (process.env.DATABASE_URL) {
-    console.log('DATABASE_URL is present. Attempting connection...');
+async function checkDbInit() {
+  if (dbInitialized && pool) return;
+
+  if (!process.env.DATABASE_URL) {
+    console.error('CRITICAL: DATABASE_URL is missing in environment variables');
+    throw new Error('DATABASE_URL não configurada no Vercel');
+  }
+
+  if (!pool) {
+    pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+  }
+
+  try {
+    console.log('Initializing database schema...');
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sentiment_feedbacks (
         id SERIAL PRIMARY KEY,
@@ -44,12 +56,12 @@ try {
       ALTER TABLE sentiment_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
       ALTER TABLE app_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
     `);
-    console.log('PostgreSQL (Supabase) connected and initialized.');
-  } else {
-    console.error('CRITICAL: DATABASE_URL is missing in environment variables.');
+    dbInitialized = true;
+    console.log('Database schema initialized.');
+  } catch (err) {
+    console.error('Database Init Error:', err.message);
+    throw err;
   }
-} catch (err) {
-  console.error('Database Init Error:', err.message);
 }
 
 const getClientIp = (req) => {
@@ -59,11 +71,15 @@ const getClientIp = (req) => {
 
 // --- API Routes ---
 
+app.get('/api/ping', (req, res) => {
+  res.json({ status: 'ok', message: 'API is alive!', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/check-status', async (req, res) => {
   const ip = getClientIp(req);
   try {
+    await checkDbInit();
     const appRes = await pool.query('SELECT id FROM app_feedbacks WHERE ip = $1', [ip]);
-    // Extraímos o EPOCH para evitar confusão de fuso horário no Driver JS
     const sentimentRes = await pool.query('SELECT EXTRACT(EPOCH FROM created_at) * 1000 as last_epoch FROM sentiment_feedbacks WHERE ip = $1 ORDER BY created_at DESC LIMIT 1', [ip]);
 
     const appRow = appRes.rows[0];
@@ -85,7 +101,7 @@ app.get('/api/check-status', async (req, res) => {
     res.json({ canSubmitApp, canSubmitSentiment, nextAvailable });
   } catch (err) {
     console.error('Check Status Error:', err.message);
-    res.status(503).json({ error: TECH_ERROR_MSG });
+    res.status(503).json({ error: `Erro no Banco (Status): ${err.message}` });
   }
 });
 
@@ -98,6 +114,7 @@ app.post('/api/feedback', async (req, res) => {
   }
 
   try {
+    await checkDbInit();
     if (type === 'sentiment') {
       const lastRes = await pool.query('SELECT EXTRACT(EPOCH FROM created_at) * 1000 as last_epoch FROM sentiment_feedbacks WHERE ip = $1 ORDER BY created_at DESC LIMIT 1', [ip]);
       const last = lastRes.rows[0];
@@ -118,7 +135,7 @@ app.post('/api/feedback', async (req, res) => {
       return res.status(403).json({ error: 'Você já enviou uma sugestão para o app.' });
     }
     console.error('Submit Feedback Error:', error.message);
-    res.status(503).json({ error: TECH_ERROR_MSG });
+    res.status(503).json({ error: `Erro no Banco (Feedback): ${error.message}` });
   }
 });
 
@@ -129,19 +146,29 @@ app.get('/api/feedbacks/:type', async (req, res) => {
   console.log(`[Admin] Fetching feedbacks for: ${type}`);
 
   if (password !== process.env.FEEDBACK_PASSWORD) {
-    console.warn(`[Admin] Unauthorized access attempt for ${type}. Password mismatch.`);
     return res.status(401).json({ error: 'Não autorizado.' });
   }
 
   const table = type === 'sentiment' ? 'sentiment_feedbacks' : 'app_feedbacks';
   try {
+    await checkDbInit();
     const result = await pool.query(`SELECT * FROM ${table} ORDER BY created_at DESC`);
-    console.log(`[Admin] Successfully fetched ${result.rows.length} rows from ${table}`);
     res.json(result.rows);
   } catch (err) {
     console.error(`[Admin] Fetch Feedbacks Error (${table}):`, err.message);
-    // Temporariamente enviando o erro real para debug
-    res.status(503).json({ error: `Erro no Banco: ${err.message}` });
+    res.status(503).json({ error: `Erro no Banco (Admin): ${err.message}` });
+  }
+});
+
+app.get('/api/debug-db', async (req, res) => {
+  try {
+    const hasUrl = !!process.env.DATABASE_URL;
+    if (!hasUrl) throw new Error('DATABASE_URL missing');
+    await checkDbInit();
+    const result = await pool.query('SELECT NOW()');
+    res.json({ status: 'ok', time: result.rows[0].now });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 
@@ -154,6 +181,7 @@ app.get('/api/export/:type', async (req, res) => {
 
   const table = type === 'sentiment' ? 'sentiment_feedbacks' : 'app_feedbacks';
   try {
+    await checkDbInit();
     const result = await pool.query(`SELECT * FROM ${table} ORDER BY created_at DESC`);
     const rows = result.rows;
 
@@ -172,7 +200,7 @@ app.get('/api/export/:type', async (req, res) => {
     res.status(200).send(csvRows.join('\n'));
   } catch (err) {
     console.error('Export Error:', err.message);
-    res.status(503).send(TECH_ERROR_MSG);
+    res.status(503).send(`Erro ao exportar: ${err.message}`);
   }
 });
 
@@ -186,8 +214,10 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
 
 export default app;
