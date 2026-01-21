@@ -43,7 +43,10 @@ async function checkDbInit() {
   }
 
   try {
-    console.log('Initializing database schema...');
+    console.log('Initializing database schema - Checking connection...');
+    const testResult = await pool.query('SELECT 1');
+    console.log('Connection test (SELECT 1) successful.');
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sentiment_feedbacks (
         id SERIAL PRIMARY KEY,
@@ -61,10 +64,10 @@ async function checkDbInit() {
       ALTER TABLE app_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
     `);
     dbInitialized = true;
-    console.log('Database schema initialized.');
+    console.log('Database schema initialized successfully.');
   } catch (err) {
-    console.error('Database Init Error:', err.message);
-    throw err;
+    console.error('DATABASE ERROR:', err.message);
+    throw new Error(`Falha ao conectar no Supabase: ${err.message}`);
   }
 }
 
@@ -83,6 +86,11 @@ app.get('/api/ping', (req, res) => {
     timestamp: new Date().toISOString(),
     env: process.env.VERCEL ? 'vercel' : 'local'
   });
+});
+
+app.get('/api/hello', (req, res) => {
+  console.log('Hit /api/hello route');
+  res.send('Hello from Vercel Serverless!');
 });
 
 app.get('/api/check-status', async (req, res) => {
