@@ -9,8 +9,11 @@ const Feedbacks = ({ type }) => {
     const [password, setPassword] = useState('');
     const [authorized, setAuthorized] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const fetchFeedbacks = async () => {
+        setLoading(true);
+        setError('');
         try {
             console.log(`Fetching feedbacks for type: ${type}`);
             const response = await axios.get(`${API_URL}/api/feedbacks/${type}`, {
@@ -32,6 +35,8 @@ const Feedbacks = ({ type }) => {
             const message = err.response?.data?.error || err.message;
             setError(`Erro (${status || 'Fetch'}): ${message}`);
             setAuthorized(false);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -56,7 +61,9 @@ const Feedbacks = ({ type }) => {
                         onChange={(e) => setPassword(e.target.value)}
                         style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%', marginBottom: '16px', fontSize: '16px' }}
                     />
-                    <button type="submit">Entrar</button>
+                    <button type="submit" disabled={loading}>
+                        {loading ? 'Carregando...' : 'Entrar'}
+                    </button>
                 </form>
                 {error && (
                     <div style={{ marginTop: '20px', padding: '15px', background: '#ffebee', color: '#c62828', borderRadius: '8px', textAlign: 'left', border: '1px solid #ffcdd2' }}>

@@ -34,9 +34,11 @@ async function checkDbInit() {
   }
 
   if (!pool) {
+    console.log('Creating new connection pool...');
     pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000
     });
   }
 
