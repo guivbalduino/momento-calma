@@ -1,12 +1,6 @@
-import express from 'express';
-import cors from 'cors';
-import pg from 'pg';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import fs from 'fs';
-
 dotenv.config();
+
+console.log('Server file loaded. VERCEL env:', process.env.VERCEL);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -72,7 +66,13 @@ const getClientIp = (req) => {
 // --- API Routes ---
 
 app.get('/api/ping', (req, res) => {
-  res.json({ status: 'ok', message: 'API is alive!', timestamp: new Date().toISOString() });
+  console.log('Hit /api/ping route');
+  res.status(200).json({
+    status: 'ok',
+    message: 'API is alive!',
+    timestamp: new Date().toISOString(),
+    env: process.env.VERCEL ? 'vercel' : 'local'
+  });
 });
 
 app.get('/api/check-status', async (req, res) => {
@@ -205,13 +205,16 @@ app.get('/api/export/:type', async (req, res) => {
 });
 
 // --- Serve Statics for Production ---
-const distPath = join(__dirname, '../dist');
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Não Encontrado' });
-    res.sendFile(join(distPath, 'index.html'));
-  });
+// On Vercel, we prefer to let Vercel handle statics via vercel.json rewrites
+if (!process.env.VERCEL) {
+  const distPath = join(__dirname, '../dist');
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Não Encontrado' });
+      res.sendFile(join(distPath, 'index.html'));
+    });
+  }
 }
 
 if (!process.env.VERCEL) {
