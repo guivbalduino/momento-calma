@@ -252,6 +252,10 @@ function MainGame() {
         )}
       </div>
 
+      <footer style={{ position: 'fixed', bottom: '24px', left: '24px', fontSize: '12px', color: '#999', opacity: 0.7, zIndex: 100 }}>
+        Desenvolvido com ❤️ por <a href="https://github.com/guivbalduino" target="_blank" rel="noopener noreferrer" style={{ color: '#666', fontWeight: 600, textDecoration: 'none' }}>Guilherme Balduino</a>
+      </footer>
+
       {status.canSubmitApp && (
         <div
           onClick={() => setShowImprovementModal(true)}
