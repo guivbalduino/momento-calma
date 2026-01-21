@@ -1,60 +1,55 @@
-# Momento Calma 🧸
+# 🧸 Momento Calma
 
-Uma aplicação web moderna e minimalista projetada para auxiliar no gerenciamento de ansiedade e estresse através da técnica de aterramento (grounding) **5-4-3-2-1**.
+O **Momento Calma** é uma aplicação web (PWA) projetada para ajudar no gerenciamento da ansiedade através da técnica de aterramento **5-4-3-2-1**. O objetivo é trazer o usuário de volta ao momento presente, focando nos sentidos.
 
-## 🚀 O Projeto
+## ✨ Funcionalidades
 
-O **Momento Calma** é um guia interativo que ajuda o usuário a sair de um estado de ansiedade ou pânico, trazendo-o de volta para o momento presente. Através de uma interface amigável e acolhedora, a aplicação estimula os cinco sentidos para "aterrar" os pensamentos do usuário.
+- **Guia de Aterramento Interativo**: Um passo a passo que utiliza os 5 sentidos (Visão, Tato, Audição, Olfato e Paladar).
+- **Registro de Sentimentos**: Ao final do exercício, o usuário pode registrar como se sente. (Limite de 1 envio a cada 2 horas por IP).
+- **Sugestões para o App**: Botão flutuante para coletar feedbacks e melhorias diretamente dos usuários.
+- **Painel Administrativo**: Visualização e exportação de feedbacks em formato CSV.
+- **PWA (Progressive Web App)**: Pode ser instalado no celular ou desktop para acesso offline fácil.
 
-## 🧠 A Técnica 5-4-3-2-1
+## 🛠️ Stack Tecnológica
 
-O app utiliza uma metodologia terapêutica comprovada para mindfulness:
+- **Frontend**: React, Vite, Axios, React Router.
+- **Backend**: Node.js, Express.
+- **Banco de Dados**: PostgreSQL (hospedado no Supabase).
+- **Estilização**: CSS Vanilla (focado em uma estética suave e relaxante).
 
--   **👁️ 5 Coisas que você pode ver**: Foco na percepção visual do ambiente.
--   **🧤 4 Coisas que você pode tocar**: Conexão com o tato e sensações físicas.
--   **👂 3 Coisas que você pode ouvir**: Atenção aos sons ao redor.
--   **👃 2 Coisas que você pode cheirar**: Estímulo olfativo para mudar o foco cerebral.
--   **👅 1 Coisa que você pode sentir o gosto**: Percepção sensorial intensa para finalização.
+## 🚀 Como Executar
 
-## ✨ Características
+### Pré-requisitos
+- Node.js instalado.
+- Banco de Dados PostgreSQL (recomendado Supabase).
 
--   **PWA (App Instalável)**: Pode ser instalado no Android e iOS como um aplicativo nativo.
--   **Som de Meditação**: Sons suaves gerados via código (chime para etapas e arpejo para conclusão).
--   **Ícone Personalizado**: Design amigável gerado exclusivamente para o app.
--   **Interface Premium**: Design limpo, cores calmantes e tipografia moderna.
--   **Animações Suaves**: Micro-interações para uma experiência relaxante.
--   **Design Responsivo**: Funciona perfeitamente em Desktops, Tablets e Celulares.
--   **Emojis Dinâmicos**: Feedback visual específico para cada sentido trabalhado.
--   **Feedback de Progresso**: Estrelas animadas que acompanham o avanço em cada etapa.
+### Configuração
+1. Clone o repositório.
+2. Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
+   ```env
+   FEEDBACK_PASSWORD=sua_senha_admin
+   PORT=3001
+   DATABASE_URL=sua_url_do_postgres
+   ```
+3. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
-## 🛠️ Tecnologias
+### Execução Local
+Para rodar o frontend e o backend simultaneamente:
+```bash
+npm run dev:all
+```
+Ou separadamente:
+- **Frontend**: `npm run dev` (Porta 5173 por padrão)
+- **Backend**: `npm run server` (Porta definida no .env)
 
--   [React](https://reactjs.org/)
--   [Vite](https://vitejs.dev/)
--   [CSS Vanilla](https://developer.mozilla.org/en-US/docs/Web/CSS) (com variáveis modernas e Flexbox)
-
-## 📦 Como rodar localmente
-
-1.  **Clone o repositório**:
-    ```bash
-    git clone https://github.com/seu-usuario/momento-calma.git
-    ```
-2.  **Entre na pasta**:
-    ```bash
-    cd momento-calma
-    ```
-3.  **Instale as dependências**:
-    ```bash
-    npm install
-    ```
-4.  **Inicie o servidor de desenvolvimento**:
-    ```bash
-    npm run dev
-    ```
+## 🔐 Acesso Administrativo
+Para visualizar os feedbacks coletados:
+- **Sentimentos**: `/feedbacks/sentimento`
+- **Sugestões**: `/feedbacks/app`
+*(É necessário a senha definida em `FEEDBACK_PASSWORD`)*
 
 ## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](file:///d:/Git/momento-calma/LICENSE) para mais detalhes.
-
----
-*Feito com ❤️ para ajudar a encontrar paz em momentos de caos.*
+Este projeto está sob a licença MIT. Consulte o arquivo [LICENSE](file:///d:/Git/momento-calma/LICENSE) para mais detalhes.
