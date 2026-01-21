@@ -46,7 +46,7 @@ const Feedbacks = ({ type }) => {
     };
 
     const downloadBase = () => {
-        window.open(`${API_URL}/api/export/${type}?pwd=${password}`, '_blank');
+        window.open(`${API_URL}/api/export/${type}?pwd=${encodeURIComponent(password)}`, '_blank');
     };
 
     if (!authorized) {

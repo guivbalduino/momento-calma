@@ -8,8 +8,6 @@ import fs from 'fs';
 
 dotenv.config();
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -172,7 +170,11 @@ app.get('/api/feedbacks/:type', async (req, res) => {
 app.get('/api/export/:type', async (req, res) => {
   const { type } = req.params;
   const password = req.query.pwd;
+
+  console.log(`[Export] Request for: ${type}`);
+
   if (password !== process.env.FEEDBACK_PASSWORD) {
+    console.warn('[Export] Unauthorized: Password mismatch');
     return res.status(401).send('Não autorizado.');
   }
 
@@ -181,23 +183,27 @@ app.get('/api/export/:type', async (req, res) => {
     await checkDbInit();
     const result = await pool.query(`SELECT * FROM ${table} ORDER BY created_at DESC`);
     const rows = result.rows;
+    console.log(`[Export] Found ${rows.length} rows to export`);
 
     const headers = ['id', 'content', 'ip', 'created_at'];
     const csvRows = [headers.join(',')];
     for (const row of rows) {
       const values = headers.map(header => {
         const val = row[header];
-        return `"${String(val).replace(/"/g, '""')}"`;
+        // Escapa aspas e trata quebras de linha para o CSV não quebrar
+        const escaped = String(val || '').replace(/"/g, '""').replace(/\n/g, ' ');
+        return `"${escaped}"`;
       });
       csvRows.push(values.join(','));
     }
 
-    res.setHeader('Content-Type', 'text/csv');
+    const csvContent = csvRows.join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename=feedbacks_${type}.csv`);
-    res.status(200).send(csvRows.join('\n'));
+    res.status(200).send(csvContent);
   } catch (err) {
-    console.error('Export Error:', err.message);
-    res.status(503).send(TECH_ERROR_MSG);
+    console.error('[Export] Database Error:', err.message);
+    res.status(503).send(`Erro ao gerar CSV: ${err.message}`);
   }
 });
 
