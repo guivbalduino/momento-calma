@@ -46,7 +46,14 @@ const Feedbacks = ({ type }) => {
     };
 
     const downloadBase = () => {
-        window.open(`${API_URL}/api/export/${type}?pwd=${encodeURIComponent(password)}`, '_blank');
+        const url = `${API_URL}/api/export/${type}?pwd=${encodeURIComponent(password)}`;
+        console.log("Triggering download from:", url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `feedbacks_${type}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     if (!authorized) {

@@ -198,9 +198,9 @@ app.get('/api/export/:type', async (req, res) => {
     }
 
     const csvContent = csvRows.join('\n');
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename=feedbacks_${type}.csv`);
-    res.status(200).send(csvContent);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="feedbacks_${type}.csv"`);
+    res.send(csvContent);
   } catch (err) {
     console.error('[Export] Database Error:', err.message);
     res.status(503).send(`Erro ao gerar CSV: ${err.message}`);
