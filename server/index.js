@@ -126,16 +126,21 @@ app.post('/api/feedback', async (req, res) => {
 app.get('/api/feedbacks/:type', async (req, res) => {
   const { type } = req.params;
   const password = req.headers['authorization'];
+
+  console.log(`[Admin] Fetching feedbacks for: ${type}`);
+
   if (password !== process.env.FEEDBACK_PASSWORD) {
+    console.warn(`[Admin] Unauthorized access attempt for ${type}. Password mismatch.`);
     return res.status(401).json({ error: 'Não autorizado.' });
   }
 
   const table = type === 'sentiment' ? 'sentiment_feedbacks' : 'app_feedbacks';
   try {
     const result = await pool.query(`SELECT * FROM ${table} ORDER BY created_at DESC`);
+    console.log(`[Admin] Successfully fetched ${result.rows.length} rows from ${table}`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Fetch Feedbacks Error:', err.message);
+    console.error(`[Admin] Fetch Feedbacks Error (${table}):`, err.message);
     res.status(503).json({ error: TECH_ERROR_MSG });
   }
 });

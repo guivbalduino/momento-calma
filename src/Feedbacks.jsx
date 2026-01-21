@@ -12,14 +12,25 @@ const Feedbacks = ({ type }) => {
 
     const fetchFeedbacks = async () => {
         try {
+            console.log(`Fetching feedbacks for type: ${type}`);
             const response = await axios.get(`${API_URL}/api/feedbacks/${type}`, {
                 headers: { Authorization: password }
             });
-            setFeedbacks(response.data);
-            setAuthorized(true);
-            setError('');
+            console.log("Feedback response:", response.data);
+
+            if (Array.isArray(response.data)) {
+                setFeedbacks(response.data);
+                setAuthorized(true);
+                setError('');
+            } else {
+                console.error("Dados recebidos não são um array:", response.data);
+                setError("O servidor retornou um formato de dados inválido.");
+            }
         } catch (err) {
-            setError('Senha incorreta ou erro no servidor.');
+            console.error("Erro ao buscar feedbacks:", err);
+            const status = err.response?.status;
+            const message = err.response?.data?.error || err.message;
+            setError(`Erro (${status || 'Fetch'}): ${message}`);
             setAuthorized(false);
         }
     };
