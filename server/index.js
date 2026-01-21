@@ -25,9 +25,9 @@ const pool = new pg.Pool({
 
 const TECH_ERROR_MSG = "No momento estamos com problemas técnicos para armazenar feedback, desculpe.";
 
-// Attempt to check connection and init schema
 try {
   if (process.env.DATABASE_URL) {
+    console.log('DATABASE_URL is present. Attempting connection...');
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sentiment_feedbacks (
         id SERIAL PRIMARY KEY,
@@ -41,13 +41,12 @@ try {
         ip TEXT NOT NULL UNIQUE,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
-      -- Forçar alteração de coluna caso a base já exista sem fuso horário
       ALTER TABLE sentiment_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
       ALTER TABLE app_feedbacks ALTER COLUMN created_at TYPE TIMESTAMPTZ;
     `);
     console.log('PostgreSQL (Supabase) connected and initialized.');
   } else {
-    console.error('CRITICAL: DATABASE_URL is missing in .env');
+    console.error('CRITICAL: DATABASE_URL is missing in environment variables.');
   }
 } catch (err) {
   console.error('Database Init Error:', err.message);
@@ -141,7 +140,8 @@ app.get('/api/feedbacks/:type', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(`[Admin] Fetch Feedbacks Error (${table}):`, err.message);
-    res.status(503).json({ error: TECH_ERROR_MSG });
+    // Temporariamente enviando o erro real para debug
+    res.status(503).json({ error: `Erro no Banco: ${err.message}` });
   }
 });
 
